@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marktkompass: Produkte clever einschätzen</title>
+  <style>
+    :root {
+      --bg1: #fff7ed;
+      --bg2: #ecfeff;
+      --ink: #14213d;
+      --muted: #64748b;
+      --card: rgba(255,255,255,.86);
+      --line: rgba(15,23,42,.12);
+      --orange: #f97316;
+      --blue: #2563eb;
+      --green: #10b981;
+      --red: #ef4444;
+      --violet: #8b5cf6;
+      --yellow: #f59e0b;
+      --shadow: 0 18px 50px rgba(15, 23, 42, .12);
+      --radius: 26px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 5%, rgba(249,115,22,.22), transparent 28%),
+        radial-gradient(circle at 85% 10%, rgba(37,99,235,.18), transparent 30%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      line-height: 1.65;
+    }
+
+    .hero {
+      min-height: 86vh;
+      display: grid;
+      place-items: center;
+      padding: 46px 20px 26px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(2px);
+      opacity: .8;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .hero::before {
+      width: 260px; height: 260px;
+      background: rgba(16,185,129,.16);
+      left: -70px; bottom: 60px;
+    }
+
+    .hero::after {
+      width: 210px; height: 210px;
+      background: rgba(139,92,246,.16);
+      right: -55px; top: 140px;
+      animation-delay: -3s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-24px); }
+    }
+
+    .hero-inner {
+      max-width: 1160px;
+      display: grid;
+      grid-template-columns: 1.08fr .92fr;
+      gap: 34px;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 13px;
+      font-weight: 850;
+      color: #9a3412;
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 5.8rem);
+      line-height: .95;
+      letter-spacing: -.07em;
+      margin: 18px 0;
+    }
+
+    .hero p {
+      color: #475569;
+      font-size: clamp(1.05rem, 2vw, 1.3rem);
+      max-width: 650px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 16px;
+      padding: 12px 18px;
+      font-weight: 900;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 12px 24px rgba(249,115,22,.22);
+      background: var(--orange);
+      color: white;
+    }
+
+    .btn:hover { transform: translateY(-1px); filter: brightness(.98); }
+    .btn.alt { background: white; color: var(--ink); box-shadow: 0 10px 24px rgba(15,23,42,.08); border: 1px solid var(--line); }
+    .btn.small { padding: 9px 12px; border-radius: 12px; font-size: .92rem; }
+
+    .hero-visual {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+      gap: 16px;
+    }
+
+    .product-tile {
+      min-height: 180px;
+      border-radius: 30px;
+      padding: 18px;
+      color: white;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transform: rotate(var(--r));
+      transition: .25s ease;
+    }
+
+    .product-tile:hover { transform: rotate(0) translateY(-6px); }
+    .product-tile .emoji { font-size: 4rem; filter: drop-shadow(0 10px 14px rgba(0,0,0,.18)); }
+    .product-tile strong { font-size: 1.1rem; }
+    .tile1 { background: linear-gradient(135deg, #fb923c, #ea580c); --r: -2deg; }
+    .tile2 { background: linear-gradient(135deg, #38bdf8, #2563eb); --r: 2deg; }
+    .tile3 { background: linear-gradient(135deg, #34d399, #059669); --r: 2.5deg; }
+    .tile4 { background: linear-gradient(135deg, #a78bfa, #7c3aed); --r: -1.5deg; }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 11px 14px;
+      background: rgba(255,255,255,.78);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(255,255,255,.65);
+      border-bottom: 1px solid var(--line);
+    }
+
+    nav a {
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 850;
+      font-size: .92rem;
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+    nav a:hover { background: #fff7ed; color: #c2410c; }
+
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 18px 72px; }
+
+    section {
+      margin: 28px 0;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.8);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 4vw, 38px);
+      backdrop-filter: blur(12px);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: clamp(1.7rem, 3.5vw, 3rem);
+      line-height: 1.05;
+      letter-spacing: -.045em;
+    }
+
+    h3 { margin: 0 0 8px; }
+    p { margin-top: 0; }
+
+    .lead { color: var(--muted); font-size: 1.08rem; max-width: 830px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(245px, 1fr)); gap: 16px; }
+
+    .card {
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 19px;
+      box-shadow: 0 10px 26px rgba(15,23,42,.06);
+    }
+
+    .image-card {
+      min-height: 240px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      isolation: isolate;
+    }
+
+    .image-card::before {
+      content: attr(data-emoji);
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      font-size: 5.2rem;
+      opacity: .92;
+      z-index: -1;
+      transform: rotate(8deg);
+    }
+
+    .image-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 75% 20%, rgba(255,255,255,.26), transparent 30%);
+      z-index: -2;
+    }
+
+    .image-card.orange { background: linear-gradient(135deg, #fb923c, #c2410c); }
+    .image-card.blue { background: linear-gradient(135deg, #38bdf8, #1d4ed8); }
+    .image-card.green { background: linear-gradient(135deg, #34d399, #047857); }
+    .image-card.violet { background: linear-gradient(135deg, #a78bfa, #6d28d9); }
+
+    .formula {
+      background: #111827;
+      color: #f8fafc;
+      border-radius: 18px;
+      padding: 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      overflow-x: auto;
+      margin: 12px 0;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .mark {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      margin: 2px;
+      font-weight: 950;
+      color: #0f172a;
+      font-family: inherit;
+    }
+    .own, .cell-own { background: #dbeafe !important; }
+    .comp, .cell-comp { background: #fee2e2 !important; }
+    .market-now, .cell-market-now { background: #dcfce7 !important; }
+    .market-next, .cell-market-next { background: #fef3c7 !important; }
+    .data-table td:not(:first-child) { font-weight: 850; }
+
+    label { font-weight: 850; display: block; margin: 9px 0 4px; }
+    input, select {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 11px 12px;
+      font-size: 1rem;
+      background: white;
+    }
+
+    .feedback {
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 13px;
+      min-height: 48px;
+    }
+    .good { color: #047857; font-weight: 900; }
+    .bad { color: #b91c1c; font-weight: 900; }
+
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 18px; overflow: hidden; }
+    th, td { padding: 11px; border: 1px solid #e2e8f0; text-align: right; }
+    th:first-child, td:first-child { text-align: left; }
+    th { background: #fff7ed; color: #9a3412; }
+
+    .matrix-wrap { display: grid; gap: 10px; }
+    .matrix {
+      height: min(78vw, 610px);
+      min-height: 430px;
+      position: relative;
+      background:
+        linear-gradient(90deg, rgba(239,68,68,.06) 0 50%, rgba(16,185,129,.06) 50% 100%),
+        linear-gradient(0deg, rgba(251,191,36,.07) 0 50%, rgba(37,99,235,.07) 50% 100%),
+        #fff;
+      border-radius: 28px;
+      border: 2px solid #1f2937;
+      overflow: hidden;
+    }
+
+    .challenge-solution-matrix {
+      height: min(78vw, 560px);
+      min-height: 420px;
+      position: relative;
+      background:
+        linear-gradient(90deg, rgba(239,68,68,.06) 0 50%, rgba(16,185,129,.06) 50% 100%),
+        linear-gradient(0deg, rgba(251,191,36,.07) 0 50%, rgba(37,99,235,.07) 50% 100%),
+        #fff;
+      border-radius: 28px;
+      border: 2px solid #1f2937;
+      overflow: hidden;
+      margin-top: 16px;
+    }
+    .matrix::before, .matrix::after,
+    .challenge-solution-matrix::before, .challenge-solution-matrix::after { content:""; position:absolute; background:#1f2937; z-index:1; }
+    .matrix::before, .challenge-solution-matrix::before { left:50%; top:0; width:2px; height:100%; }
+    .matrix::after, .challenge-solution-matrix::after { left:0; top:50%; height:2px; width:100%; }
+
+    .quadrant { position:absolute; z-index:2; font-weight:950; color:rgba(15,23,42,.45); padding:14px; pointer-events:none; }
+    .q1 { left: 10px; top: 8px; }
+    .q2 { right: 10px; top: 8px; }
+    .q3 { left: 10px; bottom: 8px; }
+    .q4 { right: 10px; bottom: 8px; }
+    .axis-x { text-align:center; color:#475569; font-weight:850; }
+    .axis-title-x {
+      position:absolute;
+      left:50%;
+      bottom:8px;
+      transform:translateX(-50%);
+      z-index:6;
+      background:rgba(255,255,255,.86);
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:5px 12px;
+      font-weight:950;
+      color:#0f172a;
+    }
+    .axis-title-y {
+      position:absolute;
+      left:8px;
+      top:50%;
+      transform:translateY(-50%) rotate(180deg);
+      writing-mode:vertical-rl;
+      z-index:6;
+      background:rgba(255,255,255,.86);
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:12px 5px;
+      font-weight:950;
+      color:#0f172a;
+    }
+    .axis-note {
+      position:absolute;
+      z-index:6;
+      background:rgba(15,23,42,.82);
+      color:white;
+      border-radius:999px;
+      padding:4px 9px;
+      font-size:.78rem;
+      font-weight:900;
+      pointer-events:none;
+    }
+    .left-note { left:18%; bottom:44px; }
+    .right-note { right:18%; bottom:44px; }
+    .bottom-note { left:16px; top:72%; }
+    .top-note { left:16px; top:24%; }
+    .divider-label-x {
+      position:absolute;
+      left:50%;
+      bottom:42px;
+      transform:translateX(-50%);
+      z-index:6;
+      background:#fff7ed;
+      color:#9a3412;
+      border:1px solid #fed7aa;
+      border-radius:999px;
+      padding:4px 9px;
+      font-size:.78rem;
+      font-weight:950;
+    }
+    .divider-label-y {
+      position:absolute;
+      left:62px;
+      top:50%;
+      transform:translateY(-50%);
+      z-index:6;
+      background:#fff7ed;
+      color:#9a3412;
+      border:1px solid #fed7aa;
+      border-radius:999px;
+      padding:4px 9px;
+      font-size:.78rem;
+      font-weight:950;
+    }
+    .scale-label {
+      position:absolute;
+      z-index:7;
+      background:rgba(255,255,255,.9);
+      color:#334155;
+      border:1px solid var(--line);
+      border-radius:8px;
+      padding:2px 6px;
+      font-size:.74rem;
+      font-weight:900;
+      pointer-events:none;
+    }
+    .x0 { left:8px; bottom:10px; }
+    .x1 { left:50%; bottom:70px; transform:translateX(-50%); }
+    .x16 { right:8px; bottom:10px; }
+    .y0 { left:8px; bottom:8px; }
+    .y10 { left:82px; top:50%; transform:translateY(-50%); }
+    .y18 { left:8px; top:8px; }
+    .axis-y { position:absolute; left:8px; top:120px; writing-mode:vertical-rl; transform:rotate(180deg); z-index:5; color:#475569; font-weight:850; }
+
+    .bubble {
+      position:absolute;
+      transform:translate(-50%,-50%);
+      border-radius:999px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      color:white;
+      font-weight:950;
+      line-height:1.05;
+      z-index:4;
+      box-shadow:0 18px 36px rgba(15,23,42,.25);
+      cursor:pointer;
+      border:3px solid rgba(255,255,255,.7);
+      transition:.2s ease;
+      padding:8px;
+    }
+    .bubble span { font-size:1.6rem; }
+    .bubble small { font-size:.74rem; margin-top:4px; }
+    .bubble:hover { transform:translate(-50%,-50%) scale(1.08); }
+
+    .tooltip {
+      position:fixed;
+      display:none;
+      max-width:285px;
+      background:#0f172a;
+      color:white;
+      border-radius:16px;
+      padding:13px;
+      z-index:100;
+      box-shadow:var(--shadow);
+      pointer-events:none;
+      font-size:.92rem;
+    }
+
+    .steps { display:grid; gap:12px; counter-reset:item; }
+    .step { background:white; border:1px solid var(--line); border-radius:18px; padding:16px 16px 16px 60px; position:relative; }
+    .step::before { counter-increment:item; content:counter(item); position:absolute; left:16px; top:16px; width:32px; height:32px; border-radius:50%; background:var(--orange); color:white; display:grid; place-items:center; font-weight:950; }
+
+    .quiz-option { width:100%; text-align:left; border:1px solid var(--line); background:white; padding:12px; border-radius:14px; margin:8px 0; cursor:pointer; font-weight:750; color: var(--ink); }
+    .quiz-option:hover { background:#fff7ed; border-color:#fb923c; }
+    .progress { height:12px; border-radius:999px; background:#e2e8f0; overflow:hidden; margin:12px 0 18px; }
+    .progress div { height:100%; width:0; background:linear-gradient(90deg,#f97316,#10b981,#2563eb); transition:.3s ease; }
+
+    .hidden { display:none; }
+    .callout { background:#fffbeb; border:1px solid #fde68a; border-radius:20px; padding:16px; }
+
+    @media (max-width: 850px) { .hero-inner { grid-template-columns:1fr; } .hero { min-height:auto; } }
+    @media print { nav, .btn, .hero-actions { display:none !important; } body { background:white; } section { box-shadow:none; break-inside:avoid; } }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <span class="eyebrow">🍹 Marktkompass für Produktideen</span>
+        <h1>Welche Produkte haben Zukunft?</h1>
+        <p>Stell dir vor, ein Unternehmen verkauft Snacks und Getränke. Manche Produkte laufen stark, andere verlieren an Bedeutung. Mit einer Portfolioanalyse erkennst du, welche Produkte Aufmerksamkeit, Geld und Strategie brauchen.</p>
+        <div class="hero-actions">
+          <a class="btn" href="#start">Loslegen</a>
+          <a class="btn alt" href="#challenge">Zur Abschluss-Challenge</a>
+        </div>
+      </div>
+      <div class="hero-visual" aria-label="Produktbilder als Illustrationen">
+        <div class="product-tile tile1"><span class="emoji">🥤</span><strong>Eistee</strong><small>starker Klassiker</small></div>
+        <div class="product-tile tile2"><span class="emoji">🥗</span><strong>Protein Bowl</strong><small>Trendprodukt</small></div>
+        <div class="product-tile tile3"><span class="emoji">🍿</span><strong>Popcorn Mix</strong><small>Nischenprodukt</small></div>
+        <div class="product-tile tile4"><span class="emoji">🧃</span><strong>Bio Smoothie</strong><small>Wachstumsmarkt</small></div>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <a href="#start">Story</a>
+    <a href="#begriffe">Begriffe</a>
+    <a href="#formeln">Formeln</a>
+    <a href="#rechner">Rechner</a>
+    <a href="#portfolio">Portfolio</a>
+    <a href="#training">Training</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#challenge">Challenge</a>
+  </nav>
+
+  <main>
+    <section id="start">
+      <h2>1. Die Situation: Vier Produkte, vier Entscheidungen</h2>
+      <p class="lead">Die fiktive FreshBite GmbH verkauft unterschiedliche Snacks und Getränke. Das Management möchte wissen: Welche Produkte sollte man ausbauen, welche stabil halten und bei welchen lohnt sich ein kritischer Blick?</p>
+      <div class="grid">
+        <div class="card image-card orange" data-emoji="🥤"><h3>Eistee Classic</h3><p>Bekannt, viel verkauft, aber der Markt wächst kaum noch.</p></div>
+        <div class="card image-card blue" data-emoji="🥗"><h3>Protein Bowl</h3><p>Sehr gute Marktposition und ein Markt, der dynamisch wächst.</p></div>
+        <div class="card image-card green" data-emoji="🍿"><h3>Popcorn Mix</h3><p>Kleine eigene Position in einem kaum wachsenden Segment.</p></div>
+        <div class="card image-card violet" data-emoji="🧃"><h3>Bio Smoothie</h3><p>Der Markt wächst schnell, aber die eigene Position ist noch nicht stark.</p></div>
+      </div>
+    </section>
+
+    <section id="begriffe">
+      <h2>2. Zwei Fragen reichen für den ersten Überblick</h2>
+      <p class="lead">Eine Portfolioanalyse sortiert Produkte nicht nach Bauchgefühl, sondern nach zwei Kennzahlen. Wichtig: Auf dieser Seite gelten feste Grenzwerte, damit du klar entscheiden kannst, ob ein Wert „hoch“ oder „niedrig“ ist.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Frage 1: Sind wir stärker als der Hauptkonkurrent?</h3>
+          <p>Dafür nutzt man den <strong>relativen Marktanteil</strong>. Er vergleicht den eigenen Umsatz mit dem Umsatz des größten Wettbewerbers.</p>
+          <div class="callout"><strong>Grenze:</strong><br>niedrig: unter 1,0<br>hoch: ab 1,0</div>
+          <p><strong>Wichtig:</strong> 0,90 bedeutet nicht „90 % Marktanteil“, sondern: Das Unternehmen erreicht 90 % des Umsatzes des stärksten Wettbewerbers. Es ist also knapp dahinter, aber noch nicht stärker.</p>
+        </div>
+        <div class="card">
+          <h3>Frage 2: Wächst der Markt?</h3>
+          <p>Dafür berechnet man das <strong>Marktwachstum</strong>. Es zeigt, ob der gesamte Markt im nächsten Jahr größer wird.</p>
+          <div class="callout"><strong>Grenze auf dieser Seite:</strong><br>niedrig: unter 10 %<br>hoch: ab 10 %</div>
+          <p>Die 10-%-Grenze ist ein festgelegter Schwellenwert für diese Lernwelt. So kannst du die Produkte eindeutig in die Matrix einordnen.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="formeln">
+      <h2>3. FreshBite-Daten und Berechnung Schritt für Schritt</h2>
+      <p class="lead">Bevor gerechnet wird, müssen die gegebenen Daten klar sein. Für jede Produktlinie gibt es vier Zahlen: den eigenen Umsatz, den Umsatz des stärksten Wettbewerbers, das aktuelle Marktvolumen und das erwartete Marktvolumen im nächsten Jahr.</p>
+
+      <div class="callout" style="margin-bottom:18px">
+        <strong>Farblegende für die Rechnungen:</strong><br>
+        <span class="mark own">eigener Umsatz</span>
+        <span class="mark comp">Umsatz stärkster Wettbewerber</span>
+        <span class="mark market-now">Marktvolumen aktuell</span>
+        <span class="mark market-next">Marktvolumen nächstes Jahr</span>
+      </div>
+
+      <div style="overflow-x:auto; margin-bottom:22px">
+        <table class="data-table">
+          <thead>
+            <tr><th>Produktlinie</th><th>Eigener Umsatz aktuell</th><th>Umsatz stärkster Wettbewerber</th><th>Marktvolumen aktuell</th><th>Marktvolumen nächstes Jahr</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Eistee Classic</td><td class="cell-own">38,40</td><td class="cell-comp">32,00</td><td class="cell-market-now">420,00</td><td class="cell-market-next">428,40</td></tr>
+            <tr><td>Protein Bowl</td><td class="cell-own">27,60</td><td class="cell-comp">23,00</td><td class="cell-market-now">180,00</td><td class="cell-market-next">207,00</td></tr>
+            <tr><td>Popcorn Mix</td><td class="cell-own">6,30</td><td class="cell-comp">21,00</td><td class="cell-market-now">260,00</td><td class="cell-market-next">263,90</td></tr>
+            <tr><td>Bio Smoothie</td><td class="cell-own">13,50</td><td class="cell-comp">22,50</td><td class="cell-market-now">150,00</td><td class="cell-market-next">174,00</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Beispiel 1: Eistee Classic</h3>
+          <div class="formula">Relativer Marktanteil = <span class="mark own">38,40</span> ÷ <span class="mark comp">32,00</span> = 1,20</div>
+          <p>Der Wert liegt <strong>über 1,0</strong>. FreshBite ist beim Eistee also stärker als der wichtigste Wettbewerber. Der relative Marktanteil ist <strong>hoch</strong>.</p>
+          <div class="formula">Marktwachstum = ((<span class="mark market-next">428,40</span> − <span class="mark market-now">420,00</span>) ÷ <span class="mark market-now">420,00</span>) × 100 = 2,00 %</div>
+          <p>Der Wert liegt <strong>unter 10 %</strong>. Das Marktwachstum ist also <strong>niedrig</strong>. Ergebnis: Eistee Classic ist eine <strong>Cash Cow</strong>.</p>
+        </div>
+        <div class="card">
+          <h3>Beispiel 2: Protein Bowl</h3>
+          <div class="formula">Relativer Marktanteil = <span class="mark own">27,60</span> ÷ <span class="mark comp">23,00</span> = 1,20</div>
+          <p>Der Wert liegt <strong>über 1,0</strong>. Die Marktposition ist <strong>hoch</strong>.</p>
+          <div class="formula">Marktwachstum = ((<span class="mark market-next">207,00</span> − <span class="mark market-now">180,00</span>) ÷ <span class="mark market-now">180,00</span>) × 100 = 15,00 %</div>
+          <p>Der Wert liegt <strong>ab 10 %</strong>. Das Marktwachstum ist <strong>hoch</strong>. Ergebnis: Protein Bowl ist ein <strong>Star</strong>.</p>
+        </div>
+        <div class="card">
+          <h3>Beispiel 3: Popcorn Mix</h3>
+          <div class="formula">Relativer Marktanteil = <span class="mark own">6,30</span> ÷ <span class="mark comp">21,00</span> = 0,30</div>
+          <p>Der Wert liegt <strong>unter 1,0</strong>. Die Marktposition ist <strong>niedrig</strong>.</p>
+          <div class="formula">Marktwachstum = ((<span class="mark market-next">263,90</span> − <span class="mark market-now">260,00</span>) ÷ <span class="mark market-now">260,00</span>) × 100 = 1,50 %</div>
+          <p>Der Wert liegt <strong>unter 10 %</strong>. Das Wachstum ist <strong>niedrig</strong>. Ergebnis: Popcorn Mix ist ein <strong>Poor Dog</strong>.</p>
+        </div>
+        <div class="card">
+          <h3>Beispiel 4: Bio Smoothie</h3>
+          <div class="formula">Relativer Marktanteil = <span class="mark own">13,50</span> ÷ <span class="mark comp">22,50</span> = 0,60</div>
+          <p>Der Wert liegt <strong>unter 1,0</strong>. Die Marktposition ist <strong>niedrig</strong>.</p>
+          <div class="formula">Marktwachstum = ((<span class="mark market-next">174,00</span> − <span class="mark market-now">150,00</span>) ÷ <span class="mark market-now">150,00</span>) × 100 = 16,00 %</div>
+          <p>Der Wert liegt <strong>ab 10 %</strong>. Das Wachstum ist <strong>hoch</strong>. Ergebnis: Bio Smoothie ist ein <strong>Question Mark</strong>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="rechner">
+      <h2>4. Ausprobieren: Zahlen rein, Kennzahl raus</h2>
+      <p class="lead">Nutze den Rechner, um ein Gefühl für die Kennzahlen zu bekommen.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Marktanteils-Rechner</h3>
+          <label for="ownSales">Eigener Umsatz in Mio. €</label>
+          <input id="ownSales" type="number" step="0.01" value="36" />
+          <label for="compSales">Umsatz größter Wettbewerber in Mio. €</label>
+          <input id="compSales" type="number" step="0.01" value="30" />
+          <button class="btn small" onclick="calcShare()">Berechnen</button>
+          <div id="shareResult" class="feedback"></div>
+        </div>
+        <div class="card">
+          <h3>Wachstums-Rechner</h3>
+          <label for="marketNow">Gesamtmarkt aktuell in Mio. €</label>
+          <input id="marketNow" type="number" step="0.01" value="200" />
+          <label for="marketFuture">Gesamtmarkt nächstes Jahr in Mio. €</label>
+          <input id="marketFuture" type="number" step="0.01" value="220" />
+          <button class="btn small" onclick="calcGrowth()">Berechnen</button>
+          <div id="growthResult" class="feedback"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="portfolio">
+      <h2>5. Der Produktkompass: Vier Felder, vier Bedeutungen</h2>
+      <p class="lead">Die Matrix arbeitet mit zwei Achsen. Die senkrechte Linie trennt niedrigen und hohen relativen Marktanteil bei <strong>1,0</strong>. Die waagerechte Linie trennt niedriges und hohes Marktwachstum bei <strong>10 %</strong>.</p>
+      <div class="callout" style="margin-bottom:18px">
+        <strong>Grenzwerte für diese Seite:</strong><br>
+        Relativer Marktanteil: <strong>niedrig &lt; 1,0</strong> | <strong>hoch ≥ 1,0</strong><br>
+        Marktwachstum: <strong>niedrig &lt; 10 %</strong> | <strong>hoch ≥ 10 %</strong>
+      </div>
+      <div class="card" style="margin-bottom:18px">
+        <h3>So werden die Achsen skaliert und beschriftet</h3>
+        <p><strong>x-Achse:</strong> relativer Marktanteil. Links stehen niedrige Werte, rechts hohe Werte. In dieser Darstellung reicht die Skala ungefähr von <strong>0 bis 1,6</strong>. Die Trennlinie liegt bei <strong>1,0</strong>.</p>
+        <p><strong>y-Achse:</strong> Marktwachstum in Prozent. Unten stehen niedrige Werte, oben hohe Werte. In dieser Darstellung reicht die Skala ungefähr von <strong>0 % bis 18 %</strong>. Die Trennlinie liegt bei <strong>10 %</strong>.</p>
+        <p><strong>Kreisgröße:</strong> Je größer der eigene Umsatz einer Produktlinie ist, desto größer wird der Kreis eingezeichnet.</p>
+      </div>
+      <div class="matrix-wrap">
+        <div class="matrix" id="bcgMatrix">
+          <div class="axis-title-x">Relativer Marktanteil</div>
+          <div class="axis-title-y">Marktwachstum in %</div>
+          <div class="axis-note left-note">niedrig &lt; 1,0</div>
+          <div class="axis-note right-note">hoch ≥ 1,0</div>
+          <div class="axis-note bottom-note">niedrig &lt; 10 %</div>
+          <div class="axis-note top-note">hoch ≥ 10 %</div>
+          <div class="divider-label-x">Grenze: 1,0</div>
+          <div class="divider-label-y">Grenze: 10 %</div>
+          <div class="scale-label x0">0</div>
+          <div class="scale-label x1">1,0</div>
+          <div class="scale-label x16">1,6</div>
+          <div class="scale-label y0">0 %</div>
+          <div class="scale-label y10">10 %</div>
+          <div class="scale-label y18">18 %</div>
+          <div class="quadrant q1">Question Marks<br><small>niedriger Marktanteil<br>hohes Wachstum</small></div>
+          <div class="quadrant q2">Stars<br><small>hoher Marktanteil<br>hohes Wachstum</small></div>
+          <div class="quadrant q3">Poor Dogs<br><small>niedriger Marktanteil<br>niedriges Wachstum</small></div>
+          <div class="quadrant q4">Cash Cows<br><small>hoher Marktanteil<br>niedriges Wachstum</small></div>
+        </div>
+        <div class="axis-x">Links = niedriger relativer Marktanteil, rechts = hoher relativer Marktanteil. Unten = niedriges Marktwachstum, oben = hohes Marktwachstum.</div>
+      </div>
+      <div class="tooltip" id="tooltip"></div>
+    </section>
+
+    <section id="training">
+      <h2>6. Training mit FreshBite-Daten</h2>
+      <p class="lead">Hier siehst du die Ausgangsdaten des Beispielunternehmens. Rechne zuerst selbst und kontrolliere danach.</p>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr><th>Produktlinie</th><th>Eigener Umsatz aktuell</th><th>Umsatz Hauptkonkurrent</th><th>Gesamtmarkt aktuell</th><th>Gesamtmarkt nächstes Jahr</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Eistee Classic</td><td>38,40</td><td>32,00</td><td>420,00</td><td>428,40</td></tr>
+            <tr><td>Protein Bowl</td><td>27,60</td><td>23,00</td><td>180,00</td><td>207,00</td></tr>
+            <tr><td>Popcorn Mix</td><td>6,30</td><td>21,00</td><td>260,00</td><td>263,90</td></tr>
+            <tr><td>Bio Smoothie</td><td>13,50</td><td>22,50</td><td>150,00</td><td>174,00</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid" style="margin-top:18px">
+        <div class="card">
+          <h3>Selbstcheck: Eistee Classic</h3>
+          <label>Relativer Marktanteil</label>
+          <input id="teaShare" type="text" placeholder="z. B. 1,20" />
+          <label>Marktwachstum in %</label>
+          <input id="teaGrowth" type="text" placeholder="z. B. 2" />
+          <button class="btn small" onclick="checkTea()">Prüfen</button>
+          <div id="teaFeedback" class="feedback"></div>
+        </div>
+        <div class="card">
+          <h3>Lösungen zum Beispiel</h3>
+          <p>Erst rechnen, dann aufdecken.</p>
+          <button class="btn small alt" onclick="toggleSolutions()">Lösungen anzeigen/verbergen</button>
+          <div id="solutions" class="feedback hidden">
+            <strong>Eistee Classic:</strong> 1,20 | 2,00 % | Cash Cow<br>
+            <strong>Protein Bowl:</strong> 1,20 | 15,00 % | Star<br>
+            <strong>Popcorn Mix:</strong> 0,30 | 1,50 % | Poor Dog<br>
+            <strong>Bio Smoothie:</strong> 0,60 | 16,00 % | Question Mark
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="quiz">
+      <h2>7. Kurzer Produktcheck</h2>
+      <p class="lead">Teste, ob du die Logik schon sicher anwenden kannst.</p>
+      <div class="progress"><div id="quizProgress"></div></div>
+      <div id="quizBox" class="card"></div>
+      <div id="quizFeedback" class="feedback"></div>
+    </section>
+
+    <section id="strategie">
+      <h2>8. Strategien: Was macht man mit welchem Produkt?</h2>
+      <div class="grid">
+        <div class="card image-card blue" data-emoji="⭐"><h3>Star</h3><p>Investieren, Sortiment verbessern, Werbung verstärken, Marktposition sichern.</p></div>
+        <div class="card image-card orange" data-emoji="🐄"><h3>Cash Cow</h3><p>Stabil halten, Kosten kontrollieren, Gewinne für andere Produkte nutzen.</p></div>
+        <div class="card image-card violet" data-emoji="❓"><h3>Question Mark</h3><p>Potenzial prüfen: gezielt investieren oder stoppen, wenn keine Chance auf Marktanteil besteht.</p></div>
+        <div class="card image-card green" data-emoji="🐕"><h3>Poor Dog</h3><p>Sortiment verkleinern, Relaunch prüfen oder Produkt auslaufen lassen.</p></div>
+      </div>
+    </section>
+
+    <section id="challenge">
+      <h2>9. Abschluss-Challenge: Du bist im Strategieteam</h2>
+      <p class="lead">Ein anderes Unternehmen, die <strong>GlowCare GmbH</strong>, verkauft Pflegeprodukte. Das Team möchte seine vier Produktlinien vergleichen. Erstelle daraus ein Portfolio, beschreibe die Lage der Produktlinien und formuliere passende Handlungsideen.</p>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr><th>Produktlinie</th><th>Umsatz GlowCare aktuell<br>in Mio. €</th><th>Umsatz stärkster Anbieter<br>in Mio. €</th><th>Marktvolumen aktuell<br>in Mio. €</th><th>Erwartetes Marktvolumen nächstes Jahr<br>in Mio. €</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Handcreme</td><td>24,75</td><td>22,50</td><td>300,00</td><td>306,00</td></tr>
+            <tr><td>Sun Spray</td><td>18,20</td><td>14,00</td><td>140,00</td><td>161,00</td></tr>
+            <tr><td>Body Mist</td><td>7,80</td><td>26,00</td><td>240,00</td><td>244,80</td></tr>
+            <tr><td>Repair Serum</td><td>12,60</td><td>21,00</td><td>90,00</td><td>105,30</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="steps" style="margin-top:18px">
+        <div class="step"><strong>Kennzahlen ermitteln:</strong> Berechne für jede Produktlinie den relativen Marktanteil und das Marktwachstum.</div>
+        <div class="step"><strong>Portfolio aufbauen:</strong> Ordne jede Produktlinie einem Feld zu: Star, Cash Cow, Question Mark oder Poor Dog.</div>
+        <div class="step"><strong>Kreisgröße beachten:</strong> Stelle die Kreise so dar, dass umsatzstärkere Produktlinien größer erscheinen.</div>
+        <div class="step"><strong>Situation deuten:</strong> Erkläre kurz, warum die Produktlinie in diesem Feld liegt.</div>
+        <div class="step"><strong>Handlungsidee formulieren:</strong> Gib je Produktlinie eine sinnvolle Empfehlung für die weitere Vermarktung.</div>
+      </div>
+      <div class="callout" style="margin-top:18px">
+        <strong>Tipp:</strong> Nutze als Orientierung: Marktanteil über 1 = stark, unter 1 = schwächer. Bei dieser Übung kannst du etwa 10 % Marktwachstum als Grenze zwischen niedrigem und hohem Wachstum verwenden.
+      </div>
+    </section>
+      <section id="uebungen">
+      <h2>10. Drei Übungsaufgaben</h2>
+      <p class="lead">Berechne jeweils den relativen Marktanteil und das Marktwachstum, ordne die Produktlinien in die Matrix ein und formuliere eine kurze Handlungsidee.</p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Übung 1: GameBox GmbH</h3>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Produkt</th><th>Eigener Umsatz</th><th>Stärkster Wettbewerber</th><th>Markt aktuell</th><th>Markt nächstes Jahr</th></tr></thead>
+              <tbody>
+                <tr><td>Controller Pro</td><td>16,80</td><td>14,00</td><td>120,00</td><td>124,80</td></tr>
+                <tr><td>VR-Brille</td><td>9,60</td><td>16,00</td><td>80,00</td><td>96,00</td></tr>
+                <tr><td>Retro-Konsole</td><td>5,40</td><td>18,00</td><td>150,00</td><td>153,00</td></tr>
+                <tr><td>Gaming-Stuhl</td><td>22,10</td><td>17,00</td><td>170,00</td><td>192,10</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Übung 2: UrbanWear AG</h3>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Produkt</th><th>Eigener Umsatz</th><th>Stärkster Wettbewerber</th><th>Markt aktuell</th><th>Markt nächstes Jahr</th></tr></thead>
+              <tbody>
+                <tr><td>Basic Hoodie</td><td>31,50</td><td>25,00</td><td>350,00</td><td>357,00</td></tr>
+                <tr><td>Smart Jacket</td><td>12,60</td><td>21,00</td><td>90,00</td><td>108,00</td></tr>
+                <tr><td>Canvas Sneaker</td><td>8,00</td><td>20,00</td><td>200,00</td><td>206,00</td></tr>
+                <tr><td>Outdoor Pants</td><td>18,90</td><td>15,00</td><td>140,00</td><td>155,40</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Übung 3: HomeTech KG</h3>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Produkt</th><th>Eigener Umsatz</th><th>Stärkster Wettbewerber</th><th>Markt aktuell</th><th>Markt nächstes Jahr</th></tr></thead>
+              <tbody>
+                <tr><td>Luftreiniger</td><td>19,20</td><td>16,00</td><td>160,00</td><td>184,00</td></tr>
+                <tr><td>Küchenradio</td><td>4,50</td><td>15,00</td><td>110,00</td><td>112,20</td></tr>
+                <tr><td>LED-Lampe</td><td>27,30</td><td>21,00</td><td>300,00</td><td>309,00</td></tr>
+                <tr><td>Smart Spiegel</td><td>10,80</td><td>18,00</td><td>60,00</td><td>72,60</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h3>Lösungen öffnen</h3>
+        <p>Die Lösungen sind geschützt. Passwort eingeben und auf „Lösungen anzeigen“ klicken.</p>
+        <label for="solutionPassword">Passwort</label>
+        <input id="solutionPassword" type="password" placeholder="Passwort eingeben" />
+        <button class="btn small" onclick="unlockSolutions()">Lösungen anzeigen</button>
+        <div id="passwordFeedback" class="feedback"></div>
+        <div id="protectedSolutions" class="feedback hidden">
+          <h3>Lösungen zu den Übungsaufgaben</h3>
+          <p><strong>Übung 1 – GameBox GmbH</strong><br>
+          Controller Pro: 1,20 | 4,00 % | Cash Cow<br>
+          VR-Brille: 0,60 | 20,00 % | Question Mark<br>
+          Retro-Konsole: 0,30 | 2,00 % | Poor Dog<br>
+          Gaming-Stuhl: 1,30 | 13,00 % | Star</p>
+
+          <div class="challenge-solution-matrix" id="gameboxMatrix">
+            <div class="axis-title-x">Relativer Marktanteil</div>
+            <div class="axis-title-y">Marktwachstum in %</div>
+            <div class="quadrant q1">Question Marks</div>
+            <div class="quadrant q2">Stars</div>
+            <div class="quadrant q3">Poor Dogs</div>
+            <div class="quadrant q4">Cash Cows</div>
+          </div>
+
+          <p style="margin-top:24px"><strong>Übung 2 – UrbanWear AG</strong><br>
+          Basic Hoodie: 1,26 | 2,00 % | Cash Cow<br>
+          Smart Jacket: 0,60 | 20,00 % | Question Mark<br>
+          Canvas Sneaker: 0,40 | 3,00 % | Poor Dog<br>
+          Outdoor Pants: 1,26 | 11,00 % | Star</p>
+
+          <div class="challenge-solution-matrix" id="urbanwearMatrix">
+            <div class="axis-title-x">Relativer Marktanteil</div>
+            <div class="axis-title-y">Marktwachstum in %</div>
+            <div class="quadrant q1">Question Marks</div>
+            <div class="quadrant q2">Stars</div>
+            <div class="quadrant q3">Poor Dogs</div>
+            <div class="quadrant q4">Cash Cows</div>
+          </div>
+
+          <p style="margin-top:24px"><strong>Übung 3 – HomeTech KG</strong><br>
+          Luftreiniger: 1,20 | 15,00 % | Star<br>
+          Küchenradio: 0,30 | 2,00 % | Poor Dog<br>
+          LED-Lampe: 1,30 | 3,00 % | Cash Cow<br>
+          Smart Spiegel: 0,60 | 21,00 % | Question Mark</p>
+
+          <div class="challenge-solution-matrix" id="hometechMatrix">
+            <div class="axis-title-x">Relativer Marktanteil</div>
+            <div class="axis-title-y">Marktwachstum in %</div>
+            <div class="quadrant q1">Question Marks</div>
+            <div class="quadrant q2">Stars</div>
+            <div class="quadrant q3">Poor Dogs</div>
+            <div class="quadrant q4">Cash Cows</div>
+          </div>
+
+          <p style="margin-top:24px"><strong>Übung 2 – UrbanWear AG</strong><br>
+          Basic Hoodie: 1,26 | 2,00 % | Cash Cow<br>
+          Smart Jacket: 0,60 | 20,00 % | Question Mark<br>
+          Canvas Sneaker: 0,40 | 3,00 % | Poor Dog<br>
+          Outdoor Pants: 1,26 | 11,00 % | Star</p>
+          <p><strong>Übung 3 – HomeTech KG</strong><br>
+          Luftreiniger: 1,20 | 15,00 % | Star<br>
+          Küchenradio: 0,30 | 2,00 % | Poor Dog<br>
+          LED-Lampe: 1,30 | 3,00 % | Cash Cow<br>
+          Smart Spiegel: 0,60 | 21,00 % | Question Mark</p>
+
+          <h3 style="margin-top:24px">Lösung zur Abschluss-Challenge: GlowCare GmbH</h3>
+          <p><strong>Handcreme:</strong> 1,10 | 2,00 % | Cash Cow<br>
+          <strong>Sun Spray:</strong> 1,30 | 15,00 % | Star<br>
+          <strong>Body Mist:</strong> 0,30 | 2,00 % | Poor Dog<br>
+          <strong>Repair Serum:</strong> 0,60 | 17,00 % | Question Mark</p>
+
+          <div class="challenge-solution-matrix" id="challengeSolutionMatrix">
+            <div class="axis-title-x">Relativer Marktanteil</div>
+            <div class="axis-title-y">Marktwachstum in %</div>
+            <div class="axis-note left-note">niedrig &lt; 1,0</div>
+            <div class="axis-note right-note">hoch ≥ 1,0</div>
+            <div class="axis-note bottom-note">niedrig &lt; 10 %</div>
+            <div class="axis-note top-note">hoch ≥ 10 %</div>
+            <div class="divider-label-x">Grenze: 1,0</div>
+            <div class="divider-label-y">Grenze: 10 %</div>
+            <div class="scale-label x0">0</div>
+            <div class="scale-label x1">1,0</div>
+            <div class="scale-label x16">1,6</div>
+            <div class="scale-label y0">0 %</div>
+            <div class="scale-label y10">10 %</div>
+            <div class="scale-label y18">18 %</div>
+            <div class="quadrant q1">Question Marks</div>
+            <div class="quadrant q2">Stars</div>
+            <div class="quadrant q3">Poor Dogs</div>
+            <div class="quadrant q4">Cash Cows</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const products = [
+      { name: "Eistee", emoji: "🥤", share: 1.20, growth: 2, sales: 38.40, type: "Cash Cow", color: "#f97316", strategy: "Stabil halten und Erträge nutzen." },
+      { name: "Protein Bowl", emoji: "🥗", share: 1.20, growth: 15, sales: 27.60, type: "Star", color: "#2563eb", strategy: "Investieren und Marktposition ausbauen." },
+      { name: "Popcorn Mix", emoji: "🍿", share: 0.30, growth: 1.5, sales: 6.30, type: "Poor Dog", color: "#ef4444", strategy: "Kritisch prüfen, eventuell reduzieren." },
+      { name: "Bio Smoothie", emoji: "🧃", share: 0.60, growth: 16, sales: 13.50, type: "Question Mark", color: "#8b5cf6", strategy: "Potenzial prüfen und gezielt investieren." }
+    ];
+
+    const challengeProducts = [
+      { name: "Handcreme", emoji: "🧴", share: 1.10, growth: 2, sales: 24.75, type: "Cash Cow", color: "#f97316", strategy: "Stabil halten und Erträge nutzen." },
+      { name: "Sun Spray", emoji: "☀️", share: 1.30, growth: 15, sales: 18.20, type: "Star", color: "#2563eb", strategy: "Investieren und Marktstellung sichern." },
+      { name: "Body Mist", emoji: "🌫️", share: 0.30, growth: 2, sales: 7.80, type: "Poor Dog", color: "#ef4444", strategy: "Kritisch prüfen oder reduzieren." },
+      { name: "Repair Serum", emoji: "💧", share: 0.60, growth: 17, sales: 12.60, type: "Question Mark", color: "#8b5cf6", strategy: "Potenzial prüfen und gezielt fördern." }
+    ];
+
+    const gameboxProducts = [
+      { name: "Controller", emoji: "🎮", share: 1.20, growth: 4, sales: 16.80, type: "Cash Cow", color: "#f97316" },
+      { name: "VR", emoji: "🥽", share: 0.60, growth: 20, sales: 9.60, type: "Question Mark", color: "#8b5cf6" },
+      { name: "Retro", emoji: "🕹️", share: 0.30, growth: 2, sales: 5.40, type: "Poor Dog", color: "#ef4444" },
+      { name: "Gaming-Stuhl", emoji: "🪑", share: 1.30, growth: 13, sales: 22.10, type: "Star", color: "#2563eb" }
+    ];
+
+    const urbanwearProducts = [
+      { name: "Hoodie", emoji: "🧥", share: 1.26, growth: 2, sales: 31.50, type: "Cash Cow", color: "#f97316" },
+      { name: "Smart Jacket", emoji: "🧢", share: 0.60, growth: 20, sales: 12.60, type: "Question Mark", color: "#8b5cf6" },
+      { name: "Sneaker", emoji: "👟", share: 0.40, growth: 3, sales: 8.00, type: "Poor Dog", color: "#ef4444" },
+      { name: "Outdoor Pants", emoji: "🥾", share: 1.26, growth: 11, sales: 18.90, type: "Star", color: "#2563eb" }
+    ];
+
+    const hometechProducts = [
+      { name: "Luftreiniger", emoji: "🌬️", share: 1.20, growth: 15, sales: 19.20, type: "Star", color: "#2563eb" },
+      { name: "Küchenradio", emoji: "📻", share: 0.30, growth: 2, sales: 4.50, type: "Poor Dog", color: "#ef4444" },
+      { name: "LED-Lampe", emoji: "💡", share: 1.30, growth: 3, sales: 27.30, type: "Cash Cow", color: "#f97316" },
+      { name: "Smart Spiegel", emoji: "🪞", share: 0.60, growth: 21, sales: 10.80, type: "Question Mark", color: "#8b5cf6" }
+    ];
+
+    function parseGermanNumber(value) {
+      return parseFloat(String(value).replace(',', '.'));
+    }
+
+    function fmt(num, digits = 2) {
+      return Number(num).toLocaleString("de-DE", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+    }
+
+    function calcShare() {
+      const own = parseGermanNumber(document.getElementById("ownSales").value);
+      const comp = parseGermanNumber(document.getElementById("compSales").value);
+      const out = document.getElementById("shareResult");
+      if (!own || !comp) { out.innerHTML = "Bitte beide Werte eingeben."; return; }
+      const result = own / comp;
+      out.innerHTML = `Relativer Marktanteil: <strong>${fmt(result)}</strong><br>${result >= 1 ? "Die eigene Position ist stärker als die des größten Wettbewerbers." : "Die eigene Position ist schwächer als die des größten Wettbewerbers."}`;
+    }
+
+    function calcGrowth() {
+      const now = parseGermanNumber(document.getElementById("marketNow").value);
+      const future = parseGermanNumber(document.getElementById("marketFuture").value);
+      const out = document.getElementById("growthResult");
+      if (!now || !future) { out.innerHTML = "Bitte beide Werte eingeben."; return; }
+      const result = ((future - now) / now) * 100;
+      out.innerHTML = `Marktwachstum: <strong>${fmt(result)} %</strong><br>${result >= 10 ? "Der Markt wächst deutlich." : "Der Markt wächst eher langsam."}`;
+    }
+
+    function drawMatrix() {
+      const matrix = document.getElementById("bcgMatrix");
+      const tooltip = document.getElementById("tooltip");
+      const maxSales = Math.max(...products.map(p => p.sales));
+      products.forEach(p => {
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.style.background = p.color;
+        bubble.innerHTML = `<span>${p.emoji}</span><small>${p.name}</small>`;
+
+        const x = Math.min(92, Math.max(8, (p.share / 1.6) * 100));
+        const y = 100 - Math.min(92, Math.max(8, (p.growth / 18) * 100));
+        const size = 58 + (p.sales / maxSales) * 78;
+        bubble.style.left = x + "%";
+        bubble.style.top = y + "%";
+        bubble.style.width = size + "px";
+        bubble.style.height = size + "px";
+
+        bubble.addEventListener("mousemove", e => {
+          tooltip.style.display = "block";
+          tooltip.style.left = (e.clientX + 14) + "px";
+          tooltip.style.top = (e.clientY + 14) + "px";
+          tooltip.innerHTML = `<strong>${p.emoji} ${p.name}</strong><br>Feld: ${p.type}<br>Relativer Marktanteil: ${fmt(p.share)}<br>Marktwachstum: ${fmt(p.growth)} %<br>Umsatz: ${fmt(p.sales)} Mio. €<br><em>${p.strategy}</em>`;
+        });
+        bubble.addEventListener("mouseleave", () => tooltip.style.display = "none");
+        matrix.appendChild(bubble);
+      });
+    }
+
+    let challengeMatrixDrawn = false;
+    let exerciseMatricesDrawn = false;
+    function drawChallengeSolutionMatrix() {
+      if (challengeMatrixDrawn) return;
+      const matrix = document.getElementById("challengeSolutionMatrix");
+      if (!matrix) return;
+      const maxSales = Math.max(...challengeProducts.map(p => p.sales));
+      challengeProducts.forEach(p => {
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.style.background = p.color;
+        bubble.innerHTML = `<span>${p.emoji}</span><small>${p.name}</small>`;
+        const x = Math.min(92, Math.max(8, (p.share / 1.6) * 100));
+        const y = 100 - Math.min(92, Math.max(8, (p.growth / 18) * 100));
+        const size = 56 + (p.sales / maxSales) * 74;
+        bubble.style.left = x + "%";
+        bubble.style.top = y + "%";
+        bubble.style.width = size + "px";
+        bubble.style.height = size + "px";
+        bubble.title = `${p.name}: ${p.type} | Marktanteil ${fmt(p.share)} | Wachstum ${fmt(p.growth)} %`;
+        matrix.appendChild(bubble);
+      });
+      challengeMatrixDrawn = true;
+    }
+
+    function drawExerciseMatrix(id, data) {
+      const matrix = document.getElementById(id);
+      if (!matrix) return;
+      const maxSales = Math.max(...data.map(p => p.sales));
+      data.forEach(p => {
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.style.background = p.color;
+        bubble.innerHTML = `<span>${p.emoji}</span><small>${p.name}</small>`;
+        const x = Math.min(92, Math.max(8, (p.share / 1.6) * 100));
+        const y = 100 - Math.min(92, Math.max(8, (p.growth / 22) * 100));
+        const size = 54 + (p.sales / maxSales) * 70;
+        bubble.style.left = x + "%";
+        bubble.style.top = y + "%";
+        bubble.style.width = size + "px";
+        bubble.style.height = size + "px";
+        bubble.title = `${p.name}: ${p.type}`;
+        matrix.appendChild(bubble);
+      });
+    }
+
+    function drawAllExerciseMatrices() {
+      if (exerciseMatricesDrawn) return;
+      drawExerciseMatrix("gameboxMatrix", gameboxProducts);
+      drawExerciseMatrix("urbanwearMatrix", urbanwearProducts);
+      drawExerciseMatrix("hometechMatrix", hometechProducts);
+      exerciseMatricesDrawn = true;
+    }
+
+    function checkTea() {
+      const share = parseGermanNumber(document.getElementById("teaShare").value);
+      const growth = parseGermanNumber(document.getElementById("teaGrowth").value);
+      const fb = document.getElementById("teaFeedback");
+      const shareOk = Math.abs(share - 1.20) <= .03;
+      const growthOk = Math.abs(growth - 2.00) <= .08;
+      if (shareOk && growthOk) {
+        fb.innerHTML = `<span class="good">Genau!</span> Eistee Classic hat eine starke Marktposition, aber nur geringes Wachstum. Das passt zur Cash Cow.`;
+      } else {
+        fb.innerHTML = `<span class="bad">Noch nicht ganz.</span> Rechne: 38,40 ÷ 32,00 und ((428,40 − 420,00) ÷ 420,00) × 100.`;
+      }
+    }
+
+    function toggleSolutions() {
+      document.getElementById("solutions").classList.toggle("hidden");
+    }
+
+    const quiz = [
+      { q: "Ein Produkt hat Marktanteil 1,30 und Wachstum 14 %. Wo liegt es?", options: ["Star", "Cash Cow", "Poor Dog"], correct: 0, explain: "Hoher Marktanteil plus hohes Wachstum ergibt einen Star." },
+      { q: "Was bedeutet ein relativer Marktanteil von 0,60?", options: ["Das Unternehmen ist stärker als der Hauptkonkurrent.", "Das Unternehmen ist schwächer als der Hauptkonkurrent.", "Der Markt wächst um 60 %."], correct: 1, explain: "Der eigene Umsatz beträgt nur 60 % des Umsatzes des stärksten Wettbewerbers." },
+      { q: "Welche Idee passt gut zu einem Question Mark?", options: ["Immer sofort streichen", "Potenzial prüfen und gezielt investieren", "Nie Geld investieren"], correct: 1, explain: "Der Markt wächst, aber die eigene Position ist noch schwach. Deshalb braucht es eine bewusste Entscheidung." },
+      { q: "Wofür steht die Größe der Kreise in vielen Portfolio-Darstellungen?", options: ["Für den Umsatz", "Für den Produktnamen", "Für die Anzahl der Konkurrenten"], correct: 0, explain: "Größere Kreise zeigen meist höhere Umsätze oder größere Bedeutung." },
+      { q: "Ab wann gilt der relative Marktanteil auf dieser Seite als hoch?", options: ["Ab 0,5", "Ab 1,0", "Erst ab 10"], correct: 1, explain: "Ab 1,0 ist das Unternehmen mindestens so stark wie der stärkste Wettbewerber." },
+      { q: "Ab wann gilt das Marktwachstum auf dieser Seite als hoch?", options: ["Ab 5 %", "Ab 10 %", "Ab 50 %"], correct: 1, explain: "Für diese Lernseite wurde 10 % als klare Grenze festgelegt." },
+      { q: "Ein Produkt hat Marktanteil 1,10 und Wachstum 3 %. Was ist es?", options: ["Cash Cow", "Question Mark", "Poor Dog"], correct: 0, explain: "Hoher Marktanteil, aber niedriges Wachstum: Das ist eine Cash Cow." },
+      { q: "Ein Produkt hat Marktanteil 0,40 und Wachstum 2 %. Was ist es?", options: ["Star", "Poor Dog", "Cash Cow"], correct: 1, explain: "Niedriger Marktanteil und niedriges Wachstum ergeben einen Poor Dog." },
+      { q: "Welche beiden Zahlen braucht man für den relativen Marktanteil?", options: ["Eigener Umsatz und Umsatz stärkster Wettbewerber", "Marktvolumen aktuell und Marktvolumen nächstes Jahr", "Gewinn und Kosten"], correct: 0, explain: "Der relative Marktanteil vergleicht den eigenen Umsatz mit dem stärksten Wettbewerber." }
+    ];
+
+    let quizIndex = 0;
+    let score = 0;
+
+    function renderQuiz() {
+      const box = document.getElementById("quizBox");
+      const feedback = document.getElementById("quizFeedback");
+      const progress = document.getElementById("quizProgress");
+      feedback.innerHTML = "";
+      progress.style.width = `${(quizIndex / quiz.length) * 100}%`;
+      if (quizIndex >= quiz.length) {
+        progress.style.width = "100%";
+        box.innerHTML = `<h3>Fertig!</h3><p>Du hast <strong>${score} von ${quiz.length}</strong> Fragen richtig beantwortet.</p><p>${score >= 3 ? "Du kannst die Methode jetzt auf neue Produktdaten übertragen." : "Schau dir die vier Felder und die beiden Formeln noch einmal an."}</p><button class="btn small" onclick="restartQuiz()">Noch einmal spielen</button>`;
+        return;
+      }
+      const item = quiz[quizIndex];
+      box.innerHTML = `<h3>Frage ${quizIndex + 1} von ${quiz.length}</h3><p><strong>${item.q}</strong></p>` + item.options.map((o, i) => `<button class="quiz-option" onclick="answerQuiz(${i})">${o}</button>`).join("");
+    }
+
+    function answerQuiz(selected) {
+      const item = quiz[quizIndex];
+      const feedback = document.getElementById("quizFeedback");
+      if (selected === item.correct) { score++; feedback.innerHTML = `<span class="good">Richtig!</span> ${item.explain}`; }
+      else { feedback.innerHTML = `<span class="bad">Nicht ganz.</span> ${item.explain}`; }
+      quizIndex++;
+      setTimeout(renderQuiz, 1300);
+    }
+
+    function restartQuiz() { quizIndex = 0; score = 0; renderQuiz(); }
+
+    function unlockSolutions() {
+      const password = document.getElementById("solutionPassword").value;
+      const feedback = document.getElementById("passwordFeedback");
+      const solutions = document.getElementById("protectedSolutions");
+      if (password === "67") {
+        solutions.classList.remove("hidden");
+        drawChallengeSolutionMatrix();
+        drawAllExerciseMatrices();
+        feedback.innerHTML = `<span class="good">Passwort richtig.</span> Die Lösungen sind jetzt sichtbar.`;
+      } else {
+        solutions.classList.add("hidden");
+        feedback.innerHTML = `<span class="bad">Passwort falsch.</span> Versuche es noch einmal.`;
+      }
+    }
+
+    drawMatrix();
+    renderQuiz();
+    calcShare();
+    calcGrowth();
+  </script>
+</body>
+</html>
