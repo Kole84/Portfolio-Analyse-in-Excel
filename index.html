@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Excel-Werkstatt: Portfolioanalyse umsetzen</title>
+  <style>
+    :root {
+      --bg1: #fff7ed;
+      --bg2: #ecfeff;
+      --ink: #14213d;
+      --muted: #64748b;
+      --card: rgba(255,255,255,.88);
+      --line: rgba(15,23,42,.12);
+      --orange: #f97316;
+      --blue: #2563eb;
+      --green: #10b981;
+      --red: #ef4444;
+      --violet: #8b5cf6;
+      --yellow: #f59e0b;
+      --shadow: 0 18px 50px rgba(15,23,42,.12);
+      --radius: 26px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 5%, rgba(249,115,22,.22), transparent 28%),
+        radial-gradient(circle at 85% 10%, rgba(37,99,235,.18), transparent 30%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      line-height: 1.65;
+    }
+
+    .hero {
+      min-height: 78vh;
+      display: grid;
+      place-items: center;
+      padding: 46px 20px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      opacity: .75;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .hero::before {
+      width: 280px;
+      height: 280px;
+      background: rgba(16,185,129,.16);
+      left: -80px;
+      bottom: 60px;
+    }
+
+    .hero::after {
+      width: 230px;
+      height: 230px;
+      background: rgba(139,92,246,.16);
+      right: -60px;
+      top: 120px;
+      animation-delay: -3s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-24px); }
+    }
+
+    .hero-inner {
+      max-width: 1160px;
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 34px;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 13px;
+      font-weight: 900;
+      color: #166534;
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 5.8vw, 5.5rem);
+      line-height: .95;
+      letter-spacing: -.07em;
+      margin: 18px 0;
+    }
+
+    .hero p {
+      color: #475569;
+      font-size: clamp(1.05rem, 2vw, 1.28rem);
+      max-width: 660px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 16px;
+      padding: 12px 18px;
+      font-weight: 900;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 12px 24px rgba(16,185,129,.22);
+      background: var(--green);
+      color: white;
+    }
+
+    .btn:hover { transform: translateY(-1px); filter: brightness(.98); }
+    .btn.alt { background: white; color: var(--ink); box-shadow: 0 10px 24px rgba(15,23,42,.08); border: 1px solid var(--line); }
+    .btn.small { padding: 9px 12px; border-radius: 12px; font-size: .92rem; }
+
+    .excel-visual {
+      background: rgba(255,255,255,.88);
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      transform: rotate(1.5deg);
+    }
+
+    .fake-excel-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+    .dot.red { background: #ef4444; }
+    .dot.yellow { background: #f59e0b; }
+    .dot.green { background: #22c55e; }
+
+    .sheet {
+      display: grid;
+      grid-template-columns: 70px repeat(4, 1fr);
+      border: 1px solid #cbd5e1;
+      overflow: hidden;
+      border-radius: 18px;
+      background: white;
+      font-size: .86rem;
+    }
+
+    .cell {
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 9px;
+      min-height: 42px;
+      background: white;
+    }
+    .cell.head { background: #dcfce7; font-weight: 950; color: #166534; }
+    .cell.row { background: #f8fafc; font-weight: 950; }
+    .cell.formula { background: #eff6ff; color: #1d4ed8; font-weight: 850; }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 11px 14px;
+      background: rgba(255,255,255,.78);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(255,255,255,.65);
+      border-bottom: 1px solid var(--line);
+    }
+
+    nav a {
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 850;
+      font-size: .92rem;
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+    nav a:hover { background: #ecfdf5; color: #047857; }
+
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 18px 72px; }
+
+    section {
+      margin: 28px 0;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.8);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 4vw, 38px);
+      backdrop-filter: blur(12px);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: clamp(1.7rem, 3.5vw, 3rem);
+      line-height: 1.05;
+      letter-spacing: -.045em;
+    }
+
+    h3 { margin: 0 0 8px; }
+    p { margin-top: 0; }
+    .lead { color: var(--muted); font-size: 1.08rem; max-width: 850px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 16px; }
+
+    .card {
+      background: rgba(255,255,255,.94);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 19px;
+      box-shadow: 0 10px 26px rgba(15,23,42,.06);
+    }
+
+    .icon-card {
+      min-height: 210px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      isolation: isolate;
+    }
+    .icon-card::before {
+      content: attr(data-emoji);
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      font-size: 5rem;
+      opacity: .9;
+      z-index: -1;
+      transform: rotate(8deg);
+    }
+    .icon-card.green { background: linear-gradient(135deg, #34d399, #047857); }
+    .icon-card.blue { background: linear-gradient(135deg, #38bdf8, #1d4ed8); }
+    .icon-card.orange { background: linear-gradient(135deg, #fb923c, #c2410c); }
+    .icon-card.violet { background: linear-gradient(135deg, #a78bfa, #6d28d9); }
+
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 18px; overflow: hidden; }
+    th, td { padding: 11px; border: 1px solid #e2e8f0; text-align: right; }
+    th:first-child, td:first-child { text-align: left; }
+    th { background: #ecfdf5; color: #166534; }
+
+    .formula-box, code {
+      background: #111827;
+      color: #f8fafc;
+      border-radius: 12px;
+      padding: 3px 7px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: .95em;
+    }
+    .formula-box { display: block; padding: 15px; overflow-x: auto; margin: 12px 0; }
+
+    .steps { display: grid; gap: 12px; counter-reset: step; }
+    .step {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px 16px 16px 60px;
+      position: relative;
+    }
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--green);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 950;
+    }
+
+    .callout {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 20px;
+      padding: 16px;
+      margin: 14px 0;
+    }
+    .tip {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 20px;
+      padding: 16px;
+      margin: 14px 0;
+    }
+    .warning {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 20px;
+      padding: 16px;
+      margin: 14px 0;
+    }
+
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+    .tab-btn {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 999px;
+      padding: 9px 13px;
+      cursor: pointer;
+      font-weight: 900;
+      color: var(--ink);
+    }
+    .tab-btn.active { background: var(--green); color: white; border-color: var(--green); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .mini-task {
+      border-left: 6px solid var(--green);
+      background: white;
+      border-radius: 18px;
+      padding: 16px;
+      margin: 12px 0;
+    }
+
+    label { font-weight: 850; display: block; margin: 9px 0 4px; }
+    input, select {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 11px 12px;
+      font-size: 1rem;
+      background: white;
+    }
+    .feedback {
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 13px;
+      min-height: 48px;
+    }
+    .good { color: #047857; font-weight: 900; }
+    .bad { color: #b91c1c; font-weight: 900; }
+
+    .quiz-option {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--line);
+      background: white;
+      padding: 12px;
+      border-radius: 14px;
+      margin: 8px 0;
+      cursor: pointer;
+      font-weight: 750;
+      color: var(--ink);
+    }
+    .quiz-option:hover { background: #ecfdf5; border-color: #10b981; }
+    .progress { height: 12px; border-radius: 999px; background: #e2e8f0; overflow: hidden; margin: 12px 0 18px; }
+    .progress div { height: 100%; width: 0; background: linear-gradient(90deg,#10b981,#2563eb,#f97316); transition: .3s ease; }
+
+    .excel-preview {
+      display: grid;
+      grid-template-columns: 110px repeat(5, minmax(110px, 1fr));
+      overflow-x: auto;
+      border: 1px solid #cbd5e1;
+      border-radius: 18px;
+      background: white;
+      font-size: .86rem;
+    }
+    .excel-preview div {
+      padding: 9px;
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      min-width: 110px;
+    }
+    .excel-preview .col { background: #dcfce7; color: #166534; font-weight: 950; text-align: center; }
+    .excel-preview .row { background: #f8fafc; font-weight: 950; }
+    .excel-preview .calc { background: #eff6ff; color: #1d4ed8; font-weight: 850; }
+
+    @media (max-width: 850px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero { min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <span class="eyebrow">📊 Excel-Werkstatt</span>
+        <h1>Aus Zahlen wird ein Portfolio</h1>
+        <p>Diese Seite zeigt Schritt für Schritt, wie du Produktdaten in Excel eingibst, Formeln nutzt und daraus ein Portfolio-Diagramm erstellst.</p>
+        <div class="hero-actions">
+          <a class="btn" href="#start">Excel-Grundlagen starten</a>
+          <a class="btn alt" href="#diagramm">Direkt zum Diagramm</a>
+        </div>
+      </div>
+      <div class="excel-visual" aria-label="Excel-Vorschau">
+        <div class="fake-excel-bar"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><strong>FreshBite_Portfolio.xlsx</strong></div>
+        <div class="sheet">
+          <div class="cell head">A</div><div class="cell head">B</div><div class="cell head">C</div><div class="cell head">D</div><div class="cell head">E</div>
+          <div class="cell row">1</div><div class="cell">Produkt</div><div class="cell">Umsatz</div><div class="cell">Konkurrent</div><div class="cell">Markt</div>
+          <div class="cell row">2</div><div class="cell">Eistee</div><div class="cell">38,40</div><div class="cell">32,00</div><div class="cell formula">=B2/C2</div>
+          <div class="cell row">3</div><div class="cell">Protein</div><div class="cell">27,60</div><div class="cell">23,00</div><div class="cell formula">=B3/C3</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <a href="#start">Grundlagen</a>
+    <a href="#eingabe">Tabelle</a>
+    <a href="#formeln">Formeln</a>
+    <a href="#kopieren">Kopieren</a>
+    <a href="#diagramm">Diagramm</a>
+    <a href="#gestaltung">Gestalten</a>
+    <a href="#aufgaben">Aufgaben</a>
+    <a href="#check">Check</a>
+  </nav>
+
+  <main>
+    <section id="start">
+      <h2>1. Was du in Excel können solltest</h2>
+      <p class="lead">Für eine Portfolioanalyse brauchst du keine komplizierten Excel-Funktionen. Wichtig sind saubere Tabellen, einfache Formeln und ein Blasendiagramm.</p>
+      <div class="grid">
+        <div class="card icon-card green" data-emoji="⌨️"><h3>Daten eingeben</h3><p>Zahlen und Überschriften strukturiert in Zellen eintragen.</p></div>
+        <div class="card icon-card blue" data-emoji="➗"><h3>Formeln nutzen</h3><p>Mit Zellbezügen rechnen, zum Beispiel <code>=B2/C2</code>.</p></div>
+        <div class="card icon-card orange" data-emoji="🧩"><h3>Formeln kopieren</h3><p>Eine Formel nach unten ziehen, damit Excel sie anpasst.</p></div>
+        <div class="card icon-card violet" data-emoji="🫧"><h3>Blasendiagramm bauen</h3><p>x-Wert, y-Wert und Blasengröße richtig zuordnen.</p></div>
+      </div>
+    </section>
+
+    <section id="grundfunktionen">
+      <h2>2. Mini-Training: Excel-Grundfunktionen</h2>
+      <p class="lead">Diese kleinen Aufgaben bereiten dich auf die Portfolioanalyse vor.</p>
+      <div class="grid">
+        <div class="mini-task">
+          <h3>Aufgabe A: Zellbezüge verstehen</h3>
+          <p>Trage in Excel ein: B2 = 20 und C2 = 5. Schreibe in D2 die Formel:</p>
+          <span class="formula-box">=B2/C2</span>
+          <p>Ergebnis: 4.</p>
+        </div>
+        <div class="mini-task">
+          <h3>Aufgabe B: Prozentrechnung</h3>
+          <p>Trage ein: B2 = 100 und C2 = 115. Schreibe in D2:</p>
+          <span class="formula-box">=(C2-B2)/B2</span>
+          <p>Formatiere D2 als Prozent. Ergebnis: 15 %.</p>
+        </div>
+        <div class="mini-task">
+          <h3>Aufgabe C: Formel kopieren</h3>
+          <p>Schreibe eine Formel in D2. Klicke die Zelle an und ziehe das kleine Quadrat unten rechts nach unten.</p>
+          <p>Excel passt die Formel automatisch an: aus <code>=B2/C2</code> wird <code>=B3/C3</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="eingabe">
+      <h2>3. Die Tabelle in Excel vorbereiten</h2>
+      <p class="lead">Lege zuerst die Rohdaten an. Jede Produktlinie bekommt eine eigene Zeile.</p>
+      <div class="callout">
+        <strong>Empfohlene Spalten:</strong><br>
+        A = Produktlinie, B = eigener Umsatz, C = Umsatz stärkster Wettbewerber, D = Marktvolumen aktuell, E = Marktvolumen nächstes Jahr, F = relativer Marktanteil, G = Marktwachstum, H = Blasengröße.
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr><th>Spalte</th><th>Inhalt</th><th>Beispiel in Zeile 2</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>A</td><td>Produktlinie</td><td>Eistee Classic</td></tr>
+            <tr><td>B</td><td>Eigener Umsatz aktuell</td><td>38,40</td></tr>
+            <tr><td>C</td><td>Umsatz stärkster Wettbewerber</td><td>32,00</td></tr>
+            <tr><td>D</td><td>Marktvolumen aktuell</td><td>420,00</td></tr>
+            <tr><td>E</td><td>Marktvolumen nächstes Jahr</td><td>428,40</td></tr>
+            <tr><td>F</td><td>Relativer Marktanteil</td><td>wird berechnet</td></tr>
+            <tr><td>G</td><td>Marktwachstum</td><td>wird berechnet</td></tr>
+            <tr><td>H</td><td>Blasengröße</td><td>eigener Umsatz</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:22px">So könnte deine Excel-Tabelle aussehen</h3>
+      <div class="excel-preview">
+        <div class="col"> </div><div class="col">A</div><div class="col">B</div><div class="col">C</div><div class="col">D</div><div class="col">E</div>
+        <div class="row">1</div><div>Produktlinie</div><div>Eigener Umsatz</div><div>Wettbewerber</div><div>Markt aktuell</div><div>Markt nächstes Jahr</div>
+        <div class="row">2</div><div>Eistee Classic</div><div>38,40</div><div>32,00</div><div>420,00</div><div>428,40</div>
+        <div class="row">3</div><div>Protein Bowl</div><div>27,60</div><div>23,00</div><div>180,00</div><div>207,00</div>
+        <div class="row">4</div><div>Popcorn Mix</div><div>6,30</div><div>21,00</div><div>260,00</div><div>263,90</div>
+        <div class="row">5</div><div>Bio Smoothie</div><div>13,50</div><div>22,50</div><div>150,00</div><div>174,00</div>
+      </div>
+    </section>
+
+    <section id="formeln">
+      <h2>4. Die Formeln in Excel eintragen</h2>
+      <p class="lead">Excel rechnet nicht mit ausgeschriebenen Begriffen, sondern mit Zelladressen. Deshalb steht in der Formel zum Beispiel B2 statt „eigener Umsatz“.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Relativer Marktanteil in F2</h3>
+          <p>Klicke in Zelle F2 und schreibe:</p>
+          <span class="formula-box">=B2/C2</span>
+          <p>Die Formel bedeutet: eigener Umsatz geteilt durch Umsatz des stärksten Wettbewerbers.</p>
+        </div>
+        <div class="card">
+          <h3>Marktwachstum in G2</h3>
+          <p>Klicke in Zelle G2 und schreibe:</p>
+          <span class="formula-box">=(E2-D2)/D2</span>
+          <p>Formatiere die Zelle anschließend als Prozent. Dann wird aus 0,02 automatisch 2 %.</p>
+        </div>
+        <div class="card">
+          <h3>Blasengröße in H2</h3>
+          <p>Die Blasengröße soll den eigenen Umsatz zeigen. Schreibe in H2:</p>
+          <span class="formula-box">=B2</span>
+          <p>So nutzt Excel den eigenen Umsatz als Kreisgröße.</p>
+        </div>
+      </div>
+      <div class="tip">
+        <strong>Wichtig:</strong> Wenn Excel bei dir Semikolon oder Komma anders verwendet, ist das hier egal, weil die Formeln nur einfache Rechnungen enthalten. Dezimalzahlen können je nach Excel-Version mit Komma geschrieben werden, z. B. 38,40.
+      </div>
+    </section>
+
+    <section id="kopieren">
+      <h2>5. Formeln nach unten kopieren</h2>
+      <p class="lead">Du musst die Formeln nicht viermal neu schreiben. Excel kann sie automatisch auf die nächsten Zeilen übertragen.</p>
+      <div class="steps">
+        <div class="step"><strong>Formelzelle anklicken:</strong> Klicke zuerst auf F2.</div>
+        <div class="step"><strong>Ausfüllkästchen nutzen:</strong> Unten rechts an der Zelle erscheint ein kleines Quadrat.</div>
+        <div class="step"><strong>Nach unten ziehen:</strong> Ziehe das Quadrat bis F5. Excel macht daraus F3, F4 und F5.</div>
+        <div class="step"><strong>Dasselbe für G und H:</strong> Wiederhole das Kopieren für Marktwachstum und Blasengröße.</div>
+      </div>
+      <div class="callout">
+        <strong>Kontrollwerte für FreshBite:</strong><br>
+        Eistee Classic: 1,20 und 2,00 %<br>
+        Protein Bowl: 1,20 und 15,00 %<br>
+        Popcorn Mix: 0,30 und 1,50 %<br>
+        Bio Smoothie: 0,60 und 16,00 %
+      </div>
+    </section>
+
+    <section id="diagramm">
+      <h2>6. Portfolio als Blasendiagramm erstellen</h2>
+      <p class="lead">Für ein Portfolio brauchst du ein Diagramm, bei dem drei Informationen gleichzeitig dargestellt werden: x-Wert, y-Wert und Kreisgröße.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Welche Spalten werden genutzt?</h3>
+          <table>
+            <thead><tr><th>Diagramm-Bestandteil</th><th>Excel-Spalte</th></tr></thead>
+            <tbody>
+              <tr><td>x-Achse</td><td>F: Relativer Marktanteil</td></tr>
+              <tr><td>y-Achse</td><td>G: Marktwachstum</td></tr>
+              <tr><td>Blasengröße</td><td>H: eigener Umsatz</td></tr>
+              <tr><td>Beschriftung</td><td>A: Produktlinie</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Diagramm einfügen</h3>
+          <div class="steps">
+            <div class="step">Markiere die berechneten Werte in F, G und H.</div>
+            <div class="step">Klicke auf <strong>Einfügen</strong>.</div>
+            <div class="step">Wähle <strong>Punktdiagramm oder Blasendiagramm</strong>.</div>
+            <div class="step">Wähle <strong>Blasendiagramm</strong>.</div>
+          </div>
+        </div>
+      </div>
+      <div class="warning">
+        <strong>Häufiger Fehler:</strong> Excel erkennt die Daten manchmal nicht richtig. Dann Rechtsklick auf das Diagramm → <strong>Daten auswählen</strong> → Datenreihe bearbeiten. Dort x-Werte, y-Werte und Blasengröße manuell auswählen.
+      </div>
+    </section>
+
+    <section id="achsen">
+      <h2>7. Achsen richtig einstellen</h2>
+      <p class="lead">Damit die vier Portfolio-Felder gut erkennbar sind, müssen die Achsen passend skaliert und beschriftet werden.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>x-Achse: Relativer Marktanteil</h3>
+          <p>Rechtsklick auf die x-Achse → <strong>Achse formatieren</strong>.</p>
+          <ul>
+            <li>Minimum: <strong>0</strong></li>
+            <li>Maximum: <strong>1,6</strong></li>
+            <li>Hauptintervall: z. B. <strong>0,2</strong></li>
+            <li>Achsentitel: <strong>Relativer Marktanteil</strong></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>y-Achse: Marktwachstum</h3>
+          <p>Rechtsklick auf die y-Achse → <strong>Achse formatieren</strong>.</p>
+          <ul>
+            <li>Minimum: <strong>0 %</strong></li>
+            <li>Maximum: <strong>18 %</strong> oder <strong>20 %</strong></li>
+            <li>Hauptintervall: z. B. <strong>2 %</strong></li>
+            <li>Achsentitel: <strong>Marktwachstum</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout">
+        <strong>Grenzlinien ergänzen:</strong><br>
+        Die Trennung zwischen niedrigem und hohem relativem Marktanteil liegt bei <strong>1,0</strong>. Die Trennung zwischen niedrigem und hohem Marktwachstum liegt hier bei <strong>10 %</strong>.
+      </div>
+      <div class="tip">
+        <strong>Einfachste Lösung:</strong> Zeichne die Grenzlinien nachträglich mit <strong>Einfügen → Formen → Linie</strong> ein. Eine senkrechte Linie bei 1,0 und eine waagerechte Linie bei 10 %.
+      </div>
+    </section>
+
+    <section id="gestaltung">
+      <h2>8. Diagramm lesbar gestalten</h2>
+      <p class="lead">Ein gutes Diagramm ist nicht nur richtig, sondern auch gut lesbar.</p>
+      <div class="grid">
+        <div class="card"><h3>Produktnamen anzeigen</h3><p>Klicke auf eine Blase → Rechtsklick → <strong>Datenbeschriftungen hinzufügen</strong>. Danach als Beschriftung die Produktnamen verwenden.</p></div>
+        <div class="card"><h3>Farben verwenden</h3><p>Du kannst jede Blase passend einfärben: Star blau, Cash Cow orange, Question Mark violett, Poor Dog rot.</p></div>
+        <div class="card"><h3>Felder benennen</h3><p>Füge Textfelder ein: Stars, Cash Cows, Question Marks, Poor Dogs.</p></div>
+        <div class="card"><h3>Titel ergänzen</h3><p>Gib dem Diagramm einen klaren Titel, z. B. „Portfolio FreshBite GmbH“.</p></div>
+      </div>
+    </section>
+
+    <section id="aufgaben">
+      <h2>9. Einstiegsaufgaben für Excel</h2>
+      <p class="lead">Diese Aufgaben kannst du direkt in Excel ausprobieren.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Aufgabe 1: Formeltraining</h3>
+          <p>Erstelle eine kleine Tabelle:</p>
+          <table>
+            <thead><tr><th>Produkt</th><th>Eigener Umsatz</th><th>Wettbewerber</th><th>Rel. Marktanteil</th></tr></thead>
+            <tbody>
+              <tr><td>A</td><td>24</td><td>20</td><td>?</td></tr>
+              <tr><td>B</td><td>12</td><td>30</td><td>?</td></tr>
+            </tbody>
+          </table>
+          <p>Berechne die letzte Spalte mit Excel-Formeln.</p>
+        </div>
+        <div class="card">
+          <h3>Aufgabe 2: Prozenttraining</h3>
+          <p>Berechne das Wachstum:</p>
+          <table>
+            <thead><tr><th>Markt aktuell</th><th>Markt nächstes Jahr</th><th>Wachstum</th></tr></thead>
+            <tbody>
+              <tr><td>200</td><td>230</td><td>?</td></tr>
+              <tr><td>150</td><td>156</td><td>?</td></tr>
+            </tbody>
+          </table>
+          <p>Formatiere das Ergebnis als Prozent.</p>
+        </div>
+        <div class="card">
+          <h3>Aufgabe 3: Diagrammtraining</h3>
+          <p>Erstelle aus drei Beispielprodukten ein Blasendiagramm. Nutze:</p>
+          <table>
+            <thead><tr><th>Produkt</th><th>x</th><th>y</th><th>Größe</th></tr></thead>
+            <tbody>
+              <tr><td>A</td><td>1,2</td><td>4 %</td><td>30</td></tr>
+              <tr><td>B</td><td>0,6</td><td>16 %</td><td>12</td></tr>
+              <tr><td>C</td><td>1,3</td><td>14 %</td><td>22</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="check">
+      <h2>10. Kurzer Selbstcheck</h2>
+      <p class="lead">Teste, ob du die Excel-Umsetzung verstanden hast.</p>
+      <div class="progress"><div id="quizProgress"></div></div>
+      <div id="quizBox" class="card"></div>
+      <div id="quizFeedback" class="feedback"></div>
+    </section>
+
+    <section id="spickzettel">
+      <h2>11. Spickzettel: Excel-Schritte in Kurzform</h2>
+      <div class="steps">
+        <div class="step">Rohdaten in Spalten A bis E eintragen.</div>
+        <div class="step">In F2 relativen Marktanteil berechnen: <code>=B2/C2</code>.</div>
+        <div class="step">In G2 Marktwachstum berechnen: <code>=(E2-D2)/D2</code>.</div>
+        <div class="step">In H2 Blasengröße festlegen: <code>=B2</code>.</div>
+        <div class="step">Formeln nach unten kopieren.</div>
+        <div class="step">Blasendiagramm einfügen: x = F, y = G, Größe = H.</div>
+        <div class="step">Achsen beschriften und skalieren: x 0 bis 1,6; y 0 % bis 18/20 %.</div>
+        <div class="step">Grenzlinien bei 1,0 und 10 % ergänzen.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const quiz = [
+      {
+        q: "Welche Formel berechnet den relativen Marktanteil in F2?",
+        options: ["=B2/C2", "=C2/B2", "=(E2-D2)/D2"],
+        correct: 0,
+        explain: "Der eigene Umsatz wird durch den Umsatz des stärksten Wettbewerbers geteilt."
+      },
+      {
+        q: "Welche Excel-Spalte eignet sich für die x-Achse im Portfolio?",
+        options: ["Relativer Marktanteil", "Marktwachstum", "Produktname"],
+        correct: 0,
+        explain: "Die x-Achse zeigt den relativen Marktanteil."
+      },
+      {
+        q: "Welche Formel berechnet das Marktwachstum?",
+        options: ["=(E2-D2)/D2", "=B2/C2", "=D2/E2"],
+        correct: 0,
+        explain: "Neuer Markt minus alter Markt, geteilt durch alten Markt."
+      },
+      {
+        q: "Welches Diagramm eignet sich am besten?",
+        options: ["Kreisdiagramm", "Blasendiagramm", "Säulendiagramm"],
+        correct: 1,
+        explain: "Das Blasendiagramm kann x-Wert, y-Wert und Größe gleichzeitig darstellen."
+      },
+      {
+        q: "Welche Grenze trennt hier niedriges und hohes Marktwachstum?",
+        options: ["1,0", "10 %", "100 %"],
+        correct: 1,
+        explain: "Auf dieser Lernseite gilt 10 % als Grenze für hohes Marktwachstum."
+      }
+    ];
+
+    let quizIndex = 0;
+    let score = 0;
+
+    function renderQuiz() {
+      const box = document.getElementById("quizBox");
+      const feedback = document.getElementById("quizFeedback");
+      const progress = document.getElementById("quizProgress");
+      feedback.innerHTML = "";
+      progress.style.width = `${(quizIndex / quiz.length) * 100}%`;
+
+      if (quizIndex >= quiz.length) {
+        progress.style.width = "100%";
+        box.innerHTML = `<h3>Fertig!</h3><p>Du hast <strong>${score} von ${quiz.length}</strong> Fragen richtig beantwortet.</p><p>${score >= 4 ? "Sehr gut. Du kannst die Portfolioanalyse nun in Excel aufbauen." : "Schau dir besonders die Formeln und die Diagrammzuordnung noch einmal an."}</p><button class="btn small" onclick="restartQuiz()">Quiz neu starten</button>`;
+        return;
+      }
+
+      const item = quiz[quizIndex];
+      box.innerHTML = `<h3>Frage ${quizIndex + 1} von ${quiz.length}</h3><p><strong>${item.q}</strong></p>` + item.options.map((option, index) => `<button class="quiz-option" onclick="answerQuiz(${index})">${option}</button>`).join("");
+    }
+
+    function answerQuiz(selected) {
+      const item = quiz[quizIndex];
+      const feedback = document.getElementById("quizFeedback");
+      if (selected === item.correct) {
+        score++;
+        feedback.innerHTML = `<span class="good">Richtig!</span> ${item.explain}`;
+      } else {
+        feedback.innerHTML = `<span class="bad">Nicht ganz.</span> ${item.explain}`;
+      }
+      quizIndex++;
+      setTimeout(renderQuiz, 1300);
+    }
+
+    function restartQuiz() {
+      quizIndex = 0;
+      score = 0;
+      renderQuiz();
+    }
+
+    function showTab(id, button) {
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      button.classList.add('active');
+    }
+
+    renderQuiz();
+  </script>
+</body>
+</html>
